@@ -41,11 +41,11 @@ h1{font-size:22px;margin:0 0 4px}h2{font-size:16px;margin:28px 0 10px;color:var(
 
 <div class="filters">
 <button class="active" data-f="all">Все</button>
-<button data-f="oleg">Олег</button>
-<button data-f="katya">Катя</button>
-<button data-f="ksenia">Ксюша</button>
-<button data-f="yulia">Юля</button>
-<button data-f="nastya">Настя</button>
+<button data-f="Олег">Олег</button>
+<button data-f="Катя">Катя</button>
+<button data-f="Ксюша">Ксюша</button>
+<button data-f="Юля">Юля</button>
+<button data-f="Настя">Настя</button>
 <button data-f="prio">Приоритет 16.10</button>
 <input class="search" id="q" placeholder="поиск по номеру или тексту" />
 </div>
@@ -79,7 +79,7 @@ const groupsOrder = ["Приоритет 16.10","Олег · после прио
 function render(filter="all", q=""){
   const list = document.getElementById("list");
   let filtered = tasks;
-  if(filter!=="all") filtered = tasks.filter(t => t.who.toLowerCase().includes(filter) || (filter==="prio" && t.prio));
+  if(filter!=="all") filtered = tasks.filter(t => t.who.toLowerCase().includes(filter.toLowerCase()) || (filter==="prio" && t.prio));
   if(q) filtered = filtered.filter(t => (t.id+t.title+t.note).toLowerCase().includes(q.toLowerCase()));
   const byGroup = {};
   filtered.forEach(t => { if(!byGroup[t.group]) byGroup[t.group]=[]; byGroup[t.group].push(t); });
