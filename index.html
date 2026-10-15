@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>INLP · Таск-трекер · 16.10.2026</title>
+<style>
+:root{--bg:#0f1117;--card:#1a1d27;--line:#2a2e3a;--ink:#e8eaed;--dim:#9aa0a6;--acc:#8ab4f8;--late:#f28b82;--wait:#fdd663;--done:#81c995;--prio:#ff8a65}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:16px;margin:28px 0 10px;color:var(--acc)}
+.sub{color:var(--dim);font-size:13px;margin-bottom:16px}
+.banner{background:linear-gradient(135deg,#2a1a14,#1a1d27);border:1px solid #3d2a22;border-radius:12px;padding:14px 16px;margin-bottom:20px}
+.banner b{color:var(--prio)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.filters button,.filters select{background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit}
+.filters button.active{background:var(--acc);color:#0f1117;border-color:var(--acc)}
+.group{margin-bottom:24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.card.prio{border-left:3px solid var(--prio)}
+.card.late{border-left:3px solid var(--late)}
+.card.wait{border-left:3px solid var(--wait)}
+.card.done{opacity:.65}
+.ttl{font-weight:600;margin-bottom:4px}
+.meta{display:flex;gap:6px;flex-wrap:wrap;font-size:11px;color:var(--dim)}
+.chip{background:#252836;padding:2px 7px;border-radius:6px}
+.chip.who{color:#b3c7ff}.chip.due{color:var(--wait)}.chip.late{color:var(--late);background:#3a2222}
+.note{font-size:12.5px;color:var(--dim);margin-top:6px;white-space:pre-wrap}
+.search{width:100%;max-width:280px;background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>INLP · Таск-трекер</h1>
+<p class="sub">Сводка на 16.10.2026 · приоритет «Демонстрация» до 13:00 · данные из Совы, основного чата и KN-INLP-P</p>
+
+<div class="banner">
+<b>Приоритет до 13:00 16.10 — настройка «Демонстрации» (старт 18.10).</b><br>
+Закрыть в этом окне: остаток по З-321 (повтор уже запущен, Катя подтвердила) и З-322 (дежурный). Пакеты З-315/317 и письма З-307 — после. Новая задача Ксюше по подкасту ПВО5 — отдельный контур.
+</div>
+
+<div class="filters">
+<button class="active" data-f="all">Все</button>
+<button data-f="oleg">Олег</button>
+<button data-f="katya">Катя</button>
+<button data-f="ksenia">Ксюша</button>
+<button data-f="yulia">Юля</button>
+<button data-f="nastya">Настя</button>
+<button data-f="prio">Приоритет 16.10</button>
+<input class="search" id="q" placeholder="поиск по номеру или тексту" />
+</div>
+
+<div id="list"></div>
+</div>
+
+<script>
+const tasks = [
+  {id:"DEMO", title:"Настройка «Демонстрации» (автовебинары, лендинг, процесс, письма П0–П6, тест)", who:"Олег", due:"16.10 до 13:00", status:"приоритет", note:"Инструкция Кати вечером 15.10. Главное окно. Остальное после.", prio:true, group:"Приоритет 16.10"},
+  {id:"З-321", title:"Повтор «Как подмять под себя жёсткого переговорщика»", who:"Олег", due:"16.10 12:00", status:"частично", note:"Олег запустил, Катя в основном чате подтвердила «все верно». Карточка Совы (оффер 4500) — проверить, нужна ли ещё.", prio:true, group:"Приоритет 16.10"},
+  {id:"З-322", title:"Дежурный в чат повтора «Жёсткого»", who:"Настя", due:"16.10 до старта", status:"открыто", note:"Сова просила назначить Таню или Юлю. В основном чате нет подтверждения.", prio:true, group:"Приоритет 16.10"},
+  {id:"З-315", title:"Пакет по эфиру «Ассертивность» (методичка, урок, посты, письма)", who:"Олег", due:"16.10", status:"открыто", note:"Афиши есть. Сдвинуть на вечер 16.10 или 17.10, не блокирует Демонстрацию.", group:"Олег · после приоритета"},
+  {id:"З-317", title:"Пакет по эфиру «Жёсткий переговорщик»", who:"Олег", due:"16.10", status:"открыто", note:"То же, что З-315. Афиши готовы, уроки/методички нет.", group:"Олег · после приоритета"},
+  {id:"З-307", title:"Письма «Всемогущий контроль» (остаток: письмо 2/бот 2 на 17.10 19:00, письмо 2б на 18.10 12:00)", who:"Олег", due:"17–18.10", status:"запланировано", note:"Письмо 1 ушло 15.10 в 19:00. Проверить пересечение с письмами Демонстрации по базе.", group:"Олег · после приоритета"},
+  {id:"З-305", title:"30 уроков курса «Психологические защиты»", who:"Олег", due:"28.10", status:"открыто", note:"Не трогать до закрытия Демонстрации.", group:"Олег · позже"},
+  {id:"З-148", title:"Цены «Психологических защит» (карточки 18/45/95 vs форма 23/57/121)", who:"Катя", due:"без срока", status:"ждёт решения", note:"Сова зафиксировала развилку. Олегу выравнивать лендинг только после ответа.", group:"Ждёт Кати"},
+  {id:"З-320", title:"Открыть Олегу доступ к «Набору и ТЗ»", who:"Катя", due:"без срока", status:"ждёт", note:"Нужно, если пакеты З-315/317 всё же требуются сегодня.", group:"Ждёт Кати"},
+  {id:"ПОДКАСТ-ПВО5", title:"Подкаст «Внутренняя кухня ПВО5» + 3 рилса (у него, у неё, у института)", who:"Ксюша", due:"сб 15:00 + 3 дня", status:"новая", note:"Из KN-INLP-P. Просмотреть, отрезать лишнее. Контроль с роботом АО. Не задача Олега.", group:"Ксюша"},
+  {id:"З-309", title:"Посты о бесплатном уроке (TG после письма, VK вечером, IG/MAX 16.10)", who:"Ксюша", due:"15–16.10", status:"открыто", note:"Параллельно подкасту.", group:"Ксюша"},
+  {id:"З-323", title:"Дожим повтора «Жёсткого» (сегмент С4, 48 ч)", who:"Юля", due:"до 18.10", status:"зависит от З-321", note:"Лично доводить до оплаты после запуска повтора.", group:"Юля"},
+  {id:"З-316", title:"Анонс записи и методички «Ассертивности» (после сдачи Олега)", who:"Юля", due:"16.10", status:"ждёт Олега", note:"Логичное продолжение З-315.", group:"Юля"},
+  {id:"З-318", title:"Анонс записи и методички «Жёсткого»", who:"Юля", due:"16.10", status:"ждёт Олега", note:"После З-317.", group:"Юля"},
+  {id:"З-275", title:"10 писем с Zoom по воркшопам («Готово к отправке» не нажато)", who:"Олег", due:"было 14.10", status:"просрочено", note:"Старый хвост. Не в приоритете 16.10.", group:"Просрочки"},
+  {id:"З-195", title:"GetCourse к практике «Диссоциация»", who:"Олег", due:"было 08.10", status:"просрочено", note:"Старый хвост.", group:"Просрочки"},
+  {id:"З-196", title:"Старт «Превосходства 5.0» 27.10 и новые цены", who:"Олег", due:"было 09.10", status:"просрочено", note:"Лендинг в черновике.", group:"Просрочки"}
+];
+
+const groupsOrder = ["Приоритет 16.10","Олег · после приоритета","Ждёт Кати","Ксюша","Юля","Просрочки","Олег · позже"];
+
+function render(filter="all", q=""){
+  const list = document.getElementById("list");
+  let filtered = tasks;
+  if(filter!=="all") filtered = tasks.filter(t => t.who.toLowerCase().includes(filter) || (filter==="prio" && t.prio));
+  if(q) filtered = filtered.filter(t => (t.id+t.title+t.note).toLowerCase().includes(q.toLowerCase()));
+  const byGroup = {};
+  filtered.forEach(t => { if(!byGroup[t.group]) byGroup[t.group]=[]; byGroup[t.group].push(t); });
+  let html = "";
+  groupsOrder.forEach(g => {
+    if(!byGroup[g]) return;
+    html += `<div class="group"><h2>${g}</h2>`;
+    byGroup[g].forEach(t => {
+      const cls = ["card", t.prio?"prio":"", t.status.includes("просроч")?"late":"", t.status.includes("ждёт")?"wait":"", t.status.includes("готов")||t.status.includes("запланир")?"done":""].filter(Boolean).join(" ");
+      html += `<div class="${cls}"><div class="ttl">${t.id} · ${t.title}</div><div class="meta">
+        <span class="chip who">${t.who}</span>
+        <span class="chip due">${t.due}</span>
+        <span class="chip">${t.status}</span>
+      </div>${t.note?`<div class="note">${t.note}</div>`:""}</div>`;
+    });
+    html += "</div>";
+  });
+  list.innerHTML = html || "<p class='sub'>Ничего не найдено</p>";
+}
+
+document.querySelectorAll(".filters button").forEach(b => b.onclick = () => {
+  document.querySelectorAll(".filters button").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
+  render(b.dataset.f, document.getElementById("q").value);
+});
+document.getElementById("q").oninput = e => {
+  const active = document.querySelector(".filters button.active");
+  render(active?.dataset.f||"all", e.target.value);
+};
+render();
+</script>
+</body>
+</html>
